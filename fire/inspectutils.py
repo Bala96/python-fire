@@ -96,14 +96,24 @@ def GetFullArgSpec(fn):
        kwonlyargs, kwonlydefaults, annotations) = inspect.getfullargspec(fn)  # pylint: disable=deprecated-method,no-member
 
   except TypeError:
-    # If we can't get the argspec, how do we know if the fn should take args?
-    # 1. If it's a builtin, it can take args.
-    # 2. If it's an implicit __init__ function (a 'slot wrapper'), take no args.
-    # Are there other cases?
-    if inspect.isbuiltin(fn):
-      return FullArgSpec(varargs='vars', varkw='kwargs')
-    else:
+    # For some builtins, we know the argspec ahead of time. For every argspec we
+    # include here, we raise our risk of an argspec going out of date.
+    known_argspecs = [
+        (object.__init__, FullArgSpec()),
+        (type, FullArgSpec(args=['object'])),
+        (type.__init__, FullArgSpec(args=['object'])),
+    ]
+
+    for known_fn, known_argspec in known_argspecs:
+      if fn is known_fn:
+        return known_argspec
+
+    # Old-style classes without __init__ methods do not take args.
+    if inspect.isclass(fn) and not hasattr(fn, '__init__'):
       return FullArgSpec()
+
+    # We don't know the argspec. Let's be permissive and allow arbitrary args.
+    return FullArgSpec(varargs='vars', varkw='kwargs')
 
   if skip_arg and args:
     args.pop(0)  # Remove 'self' or 'cls' from the list of arguments.

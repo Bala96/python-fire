@@ -92,6 +92,26 @@ class InspectUtilsTest(testutils.BaseTestCase):
     self.assertEqual(spec.kwonlydefaults, {})
     self.assertEqual(spec.annotations, {})
 
+  def testGetFullArgSpecFromTypeBuiltin(self):
+    spec = inspectutils.GetFullArgSpec(type)
+    self.assertEqual(spec.args, ['object'])
+    self.assertEqual(spec.defaults, ())
+    self.assertEqual(spec.varargs, None)
+    self.assertEqual(spec.varkw, None)
+    self.assertEqual(spec.kwonlyargs, [])
+    self.assertEqual(spec.kwonlydefaults, {})
+    self.assertEqual(spec.annotations, {})
+
+  def testGetFullArgSpecFromObjectBuiltin(self):
+    spec = inspectutils.GetFullArgSpec(object)
+    self.assertEqual(spec.args, [])
+    self.assertEqual(spec.defaults, ())
+    self.assertEqual(spec.varargs, None)
+    self.assertEqual(spec.varkw, None)
+    self.assertEqual(spec.kwonlyargs, [])
+    self.assertEqual(spec.kwonlydefaults, {})
+    self.assertEqual(spec.annotations, {})
+
   def testInfoOne(self):
     info = inspectutils.Info(1)
     self.assertEqual(info.get('type_name'), 'int')
